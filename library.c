@@ -3,6 +3,5 @@
 #include <stdio.h>
 
 void hello(void) {
-    printf("Hello, World!\n");
-    printf("test\n"):
+    printf("Hello, World 2!\n");
 }
