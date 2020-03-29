@@ -27,6 +27,12 @@ typedef struct key_s
     unsigned int key_length;
 } key_t;
 
+typedef struct key_sched_s
+{
+    BYTE** arr_key;
+    unsigned int nb_word; // 1 word -> 4 bytes
+} key_sched_t;
+
 typedef struct rcon_s
 {
     BYTE content[256] = {
@@ -96,6 +102,13 @@ void RotWord(BYTE* word); // input/ouput -> 4 BYTE
 
 void SubWord(BYTE* word); // input/ouput -> 4 BYTE
 
+void AllocKeySched(key_sched_t* key_sched,
+                    unsigned int Nb,
+                    unsigned int Nr);
+
+void CreateKeySched(key_sched_t* key_sched,
+                    unsigned int Nb,
+                    unsigned int Nr);
 
 void Decipher(intput_t* Input,
               ouput_t*  Output,

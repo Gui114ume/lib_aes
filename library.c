@@ -155,3 +155,33 @@ void SubWord(BYTE* word,
     free(tmp_word);
     return (void)0;
 }
+
+void AllocKeySched(key_sched_t* key_sched,
+                   unsigned int Nb,
+                   unsigned int Nr)
+{
+    for(int i = 0 ; i < Nb * (Nr - 1) ; i++)
+    {
+        key_sched->arr_key = malloc(Nb * (Nr + 1) * sizeof(BYTE*));
+        for(int i = 0 ; i < (Nb * (Nr + 1) ) ; i++)
+        {
+            key_sched->arr_key[i] = malloc(4 * sizeof(BYTE));
+        }
+    }
+    key_sched->nb_word = Nb * (Nr - 1);
+    return (void)0;
+}
+
+void CreateKeySched(key_sched_t* key_sched,
+                    key_t* key,
+                    unsigned int Nb,
+                    unsigned int Nr,
+                    unsigned int Nk)
+{
+    unsigned int i = 0;
+    while( i < Nk)
+    {
+        key_sched->arr_key[i] = ;// trouver comment ecrire ça ?
+    }
+    return (void)0;
+}
