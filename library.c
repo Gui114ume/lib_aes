@@ -8,27 +8,31 @@
 
 void Cipher(intput_t* Input,
             ouput_t*  Output,
-            key_t*    Key) // a verifier, c'est peut etre pas la cle qu'il faut
+            key_sched_t* Key_tab,
+            SBox_t* sbox,
+            unsigned int Nb,
+            unsigned int Nr)
+
+//non il faut keysched, qui contient toutes les cles, une pour chaque round
 {
-    unsigned int Nr = Nr10; // a detecter en fonction de la taille de la key
 
     state_t* state = malloc(sizeof(state_t));
 
     memcpy(state,Input,sizeof(intput_t));
 
-    AddRoundKey(state, Key);
+    AddRoundKey(state, Key_tab[0]);
     int i = 0;
-    for(i = 0 ; i < Nr - 1 ; i++)
+    for(i = 1 ; i < Nr ; i++)
     {
         SubBytes(state, sbox);
         ShiftRows(state);
         MixColumns(state);
-        AddRoundKey(state, Key);
+        AddRoundKey(state, Key_tab[i]);
     }
 
     SubBytes(state, sbox);
     ShiftRows(state);
-    AddRoundKey(state, Key(i));
+    AddRoundKey(state, Key[ (Nr + 1) * Nb - 1]);
 
     memcpy(Output, state, sizeof(state_t));
     return (void)0;
@@ -124,7 +128,13 @@ void MixColumns(state_t* state)
 void AddRoundKey(state_t* state,
                  key_t*   RoundKey)
 {
-
+    for(int i = 0 ; i < 4 ; i++)
+    {
+        state->value[0  + i] = state->value[0  + i] ^ RoundKey[i]->arr_key[0];
+        state->value[4  + i] = state->value[4  + i] ^ RoundKey[i]->arr_key[1];
+        state->value[8  + i] = state->value[8  + i] ^ RoundKey[i]->arr_key[2];
+        state->value[12 + i] = state->value[12 + i] ^ RoundKey[i]->arr_key[3];
+    }
     return (void)0;
 }
 
@@ -182,12 +192,9 @@ void CreateKeySched(key_sched_t* key_sched,
                     unsigned int Nr,
                     unsigned int Nk)
 {
-    // soit on alloc key_sched ici, soit on le fait à part
     unsigned int i = 0;
     BYTE* temp = malloc(sizeof(BYTE) * 4);
-    //rcon_t* Rcon = malloc(sizeof(rcon_t));
-    //InitRcon(Rcon); ailleurs dans le programme pour ne le faire qu'une fois,
-// remplir key_sched->arr_key[][]
+
     while(i < Nk)
     {
         key_sched->arr_key[i][0] = key->key_arr[4 * i];
@@ -220,16 +227,9 @@ void CreateKeySched(key_sched_t* key_sched,
 
         i = i + 1;
     }
+    free(temp);
     return (void)0;
 }
 
-void InitSbox(SBox_t* sbox)
-{
-    return (void)0;
-}
 
-void InitRcon(rcon_t* rcon)
-{
-    return (void)0;
-}
 
