@@ -144,6 +144,7 @@ void RotWord(BYTE* word)
 void SubWord(BYTE* word,
              SBox_t* sbox)
 {
+    //sbox initialisé et remplie ailleurs, dans le main
     BYTE* tmp_word = malloc(4 * sizeof(BYTE));
 
     tmp_word[0] = sbox->content[   (word[0] >> 4)  * (n - 1) +  ( (word[0] << 4) >> 4) ];
@@ -172,16 +173,63 @@ void AllocKeySched(key_sched_t* key_sched,
     return (void)0;
 }
 
+// Key Expansion
 void CreateKeySched(key_sched_t* key_sched,
                     key_t* key,
+                    SBox_t* sbox,
+                    rcon_t* Rcon,
                     unsigned int Nb,
                     unsigned int Nr,
                     unsigned int Nk)
 {
+    // soit on alloc key_sched ici, soit on le fait à part
     unsigned int i = 0;
-    while( i < Nk)
+    BYTE* temp = malloc(sizeof(BYTE) * 4);
+    //rcon_t* Rcon = malloc(sizeof(rcon_t));
+    //InitRcon(Rcon); ailleurs dans le programme pour ne le faire qu'une fois,
+// remplir key_sched->arr_key[][]
+    while(i < Nk)
     {
-        key_sched->arr_key[i] = ;// trouver comment ecrire ça ?
+        key_sched->arr_key[i][0] = key->key_arr[4 * i];
+        key_sched->arr_key[i][1] = key->key_arr[4 * i + 1];
+        key_sched->arr_key[i][2] = key->key_arr[4 * i + 2];
+        key_sched->arr_key[i][3] = key->key_arr[4 * i + 3];
+        i = i + 1;
+    }
+
+    i = Nk;
+
+    while( i < Nb * (Nr + 1) )
+    {
+        memcpy(temp,key_sched->arr_key[i - 1],sizeof(BYTE)*4);
+        if( (i % Nk) == 0)
+        {
+            RotWord(temp);
+            SubWord(temp, sbox);
+            for(int j = 0 ; j < 4 ; j++)
+                temp[j] = (j == 0) ? temp[j] ^ Rcon[i/Nk] : temp[j] ^ 0b00000000; // tableau 2D en 1D, il faut que j apparaisse dedans
+        // attention rcon contient juste les valeurs interessant, càd le premier octet,
+        // les autres sont a zero { x^(i-1), 0, 0, 0  }
+        }
+        else if (  (Nk > 6) && (  (i % Nk) == 4)  )
+        {
+            SubWord(temp,sbox);
+        }
+        for(int j = 0 ; j < 4 ; j++)
+            key_sched->arr_key[i][j] = key_sched->arr_key[i - Nk][j] ^ temp[j];// trouver comment ecrire ça ?
+
+        i = i + 1;
     }
     return (void)0;
 }
+
+void InitSbox(SBox_t* sbox)
+{
+    return (void)0;
+}
+
+void InitRcon(rcon_t* rcon)
+{
+    return (void)0;
+}
+
