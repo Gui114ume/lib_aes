@@ -1,6 +1,7 @@
 #ifndef LIB_AES_H
 #define LIB_AES_H
 
+/*
 // Key Length in words of 32 bits
 #define Nk4 4
 #define Nk6 6
@@ -13,7 +14,7 @@
 
 // Block Size in words of 32 bits
 #define Nb 4
-
+*/
 typedef unsigned char BYTE;
 
 typedef struct state_s
@@ -25,11 +26,11 @@ typedef struct key_s
 {
     BYTE* arr_key;
     unsigned int key_length;
-} key_t;
+} my_key_t;
 
 typedef struct key_sched_s
 {
-    key_t* tab;
+    my_key_t* tab;
     // 1 word -> 4 bytes
 } key_sched_t;
 /*
@@ -42,7 +43,7 @@ typedef struct key_sched_s
 //on va juste faire : typedef rcon_t BYTE, comme ça on devra creer un pointeur de rcon_t,
 // et le remplir
 
-typedef rcon_t unsigned char;
+typedef unsigned char rcon_t;
 
 rcon_t glob_rcon[255] = {
 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
@@ -62,7 +63,7 @@ rcon_t glob_rcon[255] = {
 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd,
 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb};
 
-typedef SBox_t unsigned char;
+typedef unsigned char SBox_t;
 
 SBox_t glob_sbox[256] = { 0x63 ,0x7c ,0x77 ,0x7b ,0xf2 ,0x6b ,0x6f ,0xc5 ,0x30 ,0x01 ,0x67 ,0x2b ,0xfe ,0xd7 ,0xab ,0x76
                     ,0xca ,0x82 ,0xc9 ,0x7d ,0xfa ,0x59 ,0x47 ,0xf0 ,0xad ,0xd4 ,0xa2 ,0xaf ,0x9c ,0xa4 ,0x72 ,0xc0
@@ -93,7 +94,10 @@ typedef state_t ouput_t;
 
 void Cipher(intput_t* Input,
             ouput_t*  Output,
-            key_t*    Key);
+            key_sched_t* Key_tab,
+            SBox_t* sbox,
+            unsigned int Nb,
+            unsigned int Nr);
 
 void SubBytes(state_t* state,
               SBox_t* sbox);
@@ -103,20 +107,25 @@ void ShiftRows(state_t* state);
 void MixColumns(state_t* state);
 
 void AddRoundKey(state_t* state,
-                 key_t*   Key); //je ne sais pas encore ce que c'est
+                 my_key_t*   Key); //je ne sais pas encore ce que c'est
 
 
 void RotWord(BYTE* word); // input/ouput -> 4 BYTE
 
-void SubWord(BYTE* word); // input/ouput -> 4 BYTE
+void SubWord(BYTE* word,
+             SBox_t* sbox); // input/ouput -> 4 BYTE
 
 void AllocKeySched(key_sched_t* key_sched,
                     unsigned int Nb,
                     unsigned int Nr);
 
 void CreateKeySched(key_sched_t* key_sched,
+                    my_key_t* key,
+                    SBox_t* sbox,
+                    rcon_t* Rcon,
                     unsigned int Nb,
-                    unsigned int Nr);
+                    unsigned int Nr,
+                    unsigned int Nk);
 
 void InitSbox(SBox_t* sbox);
 
@@ -124,7 +133,7 @@ void InitRcon(rcon_t* rcon);
 
 void Decipher(intput_t* Input,
               ouput_t*  Output,
-              key_t*    Key);
+              my_key_t*    Key);
 
 void InvMixColumns(state_t* state);
 

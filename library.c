@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <unistd.h>
 
@@ -20,19 +21,19 @@ void Cipher(intput_t* Input,
 
     memcpy(state,Input,sizeof(intput_t));
 
-    AddRoundKey(state, Key_tab[0]);
+    AddRoundKey(state, &(Key_tab->tab[0]));
     int i = 0;
     for(i = 1 ; i < Nr ; i++)
     {
         SubBytes(state, sbox);
         ShiftRows(state);
         MixColumns(state);
-        AddRoundKey(state, Key_tab[i]);
+        AddRoundKey(state, &(Key_tab->tab[i]));
     }
 
     SubBytes(state, sbox);
     ShiftRows(state);
-    AddRoundKey(state, Key[ (Nr + 1) * Nb - 1]);
+    AddRoundKey(state, &(Key_tab->tab[ (Nr + 1) * Nb - 1]));
 
     memcpy(Output, state, sizeof(state_t));
     return (void)0;
@@ -50,9 +51,9 @@ void SubBytes(state_t* state,
     for(int i = 0 ; i < 32 ; i++)
     {
         // tab[i][j] = arr[ i * ( n - 1 ) + j ]
-        I = state[i] >> 4;
-        J = ( state[i] << 4 ) >> 4;
-        state[i] = sbox->content[ I * ( n - 1) + J ]; // on fait une traduction en gros
+        I = state->value[i] >> 4;
+        J = ( state->value[i] << 4 ) >> 4;
+        state->value[i] = sbox[ I * ( n - 1) + J ]; // on fait une traduction en gros
     }
     return (void)0;
 }
@@ -67,7 +68,7 @@ void ShiftRows(state_t* state)
     {
         tmp1 = state->value[i];
         tmp2 = state->value[i + 1];
-        tmp3 = state->value[i + 2]
+        tmp3 = state->value[i + 2];
         tmp4 = state->value[i + 3];
 
         switch (j)
@@ -126,14 +127,14 @@ void MixColumns(state_t* state)
 
 
 void AddRoundKey(state_t* state,
-                 key_t*   RoundKey)
+                 my_key_t*   RoundKey)
 {
     for(int i = 0 ; i < 4 ; i++)
     {
-        state->value[0  + i] = state->value[0  + i] ^ RoundKey[i]->arr_key[0];
-        state->value[4  + i] = state->value[4  + i] ^ RoundKey[i]->arr_key[1];
-        state->value[8  + i] = state->value[8  + i] ^ RoundKey[i]->arr_key[2];
-        state->value[12 + i] = state->value[12 + i] ^ RoundKey[i]->arr_key[3];
+        state->value[0  + i] = state->value[0  + i] ^ RoundKey->arr_key[0];
+        state->value[4  + i] = state->value[4  + i] ^ RoundKey->arr_key[1];
+        state->value[8  + i] = state->value[8  + i] ^ RoundKey->arr_key[2];
+        state->value[12 + i] = state->value[12 + i] ^ RoundKey->arr_key[3];
     }
     return (void)0;
 }
@@ -156,11 +157,11 @@ void SubWord(BYTE* word,
 {
     //sbox initialisé et remplie ailleurs, dans le main
     BYTE* tmp_word = malloc(4 * sizeof(BYTE));
-
-    tmp_word[0] = sbox->content[   (word[0] >> 4)  * (n - 1) +  ( (word[0] << 4) >> 4) ];
-    tmp_word[1] = sbox->content[   (word[1] >> 4)  * (n - 1) +  ( (word[1] << 4) >> 4) ];
-    tmp_word[2] = sbox->content[   (word[2] >> 4)  * (n - 1) +  ( (word[2] << 4) >> 4) ];
-    tmp_word[3] = sbox->content[   (word[3] >> 4)  * (n - 1) +  ( (word[3] << 4) >> 4) ];
+    unsigned int n = 16; // nb d'element par ligne
+    tmp_word[0] = sbox[   (word[0] >> 4)  * (n - 1) +  ( (word[0] << 4) >> 4) ];
+    tmp_word[1] = sbox[   (word[1] >> 4)  * (n - 1) +  ( (word[1] << 4) >> 4) ];
+    tmp_word[2] = sbox[   (word[2] >> 4)  * (n - 1) +  ( (word[2] << 4) >> 4) ];
+    tmp_word[3] = sbox[   (word[3] >> 4)  * (n - 1) +  ( (word[3] << 4) >> 4) ];
 
     memcpy(word,tmp_word,4 * sizeof(BYTE));
     free(tmp_word);
@@ -173,19 +174,18 @@ void AllocKeySched(key_sched_t* key_sched,
 {
     for(int i = 0 ; i < Nb * (Nr - 1) ; i++)
     {
-        key_sched->arr_key = malloc(Nb * (Nr + 1) * sizeof(BYTE*));
+        key_sched->tab = malloc(Nb * (Nr + 1) * sizeof(BYTE*));
         for(int i = 0 ; i < (Nb * (Nr + 1) ) ; i++)
         {
-            key_sched->arr_key[i] = malloc(4 * sizeof(BYTE));
+            key_sched->tab[i].arr_key = malloc(4 * sizeof(BYTE));
         }
     }
-    key_sched->nb_word = Nb * (Nr - 1);
     return (void)0;
 }
 
 // Key Expansion
 void CreateKeySched(key_sched_t* key_sched,
-                    key_t* key,
+                    my_key_t* key,
                     SBox_t* sbox,
                     rcon_t* Rcon,
                     unsigned int Nb,
@@ -197,10 +197,10 @@ void CreateKeySched(key_sched_t* key_sched,
 
     while(i < Nk)
     {
-        key_sched->arr_key[i][0] = key->key_arr[4 * i];
-        key_sched->arr_key[i][1] = key->key_arr[4 * i + 1];
-        key_sched->arr_key[i][2] = key->key_arr[4 * i + 2];
-        key_sched->arr_key[i][3] = key->key_arr[4 * i + 3];
+        key_sched->tab[i].arr_key[0] = key->arr_key[4 * i];
+        key_sched->tab[i].arr_key[1] = key->arr_key[4 * i + 1];
+        key_sched->tab[i].arr_key[2] = key->arr_key[4 * i + 2];
+        key_sched->tab[i].arr_key[3] = key->arr_key[4 * i + 3];
         i = i + 1;
     }
 
@@ -208,7 +208,7 @@ void CreateKeySched(key_sched_t* key_sched,
 
     while( i < Nb * (Nr + 1) )
     {
-        memcpy(temp,key_sched->arr_key[i - 1],sizeof(BYTE)*4);
+        memcpy(temp,key_sched->tab[i - 1].arr_key,sizeof(BYTE)*4);
         if( (i % Nk) == 0)
         {
             RotWord(temp);
@@ -223,7 +223,7 @@ void CreateKeySched(key_sched_t* key_sched,
             SubWord(temp,sbox);
         }
         for(int j = 0 ; j < 4 ; j++)
-            key_sched->arr_key[i][j] = key_sched->arr_key[i - Nk][j] ^ temp[j];// trouver comment ecrire ça ?
+            key_sched->tab[i].arr_key[j] = key_sched->tab[i - Nk].arr_key[j] ^ temp[j];// trouver comment ecrire ça ?
 
         i = i + 1;
     }

@@ -5,7 +5,7 @@
 
 #include "library.h"
 
-int main(int arc, char* argv[], char* varenv[])
+int main(int argc, char* argv[], char* varenv[])
 {
 
     // Etapes du programme
@@ -18,19 +18,22 @@ int main(int arc, char* argv[], char* varenv[])
 
     if(argc < 2)
     {
-        printf("usage : %s [fichier_key] [fichier_clair] [fichier_chiffre]",argv[0]);
+        printf("usage : %s [fichier_key] [fichier_clair] [fichier_chiffre]\n",argv[0]);
         return -1;
     }
 // Recuperation de la cle AES //////////////////////////////
     FILE* fptr_key = fopen(argv[1],"rb");
     unsigned int key_length = 0;
 
-    key_t* key = malloc(sizeof(key_t));
+    my_key_t* key = malloc(sizeof(key_t));
     key->arr_key = malloc(sizeof(BYTE) * 256);
 
     key_length = fread( key->arr_key , sizeof(BYTE), 256, fptr_key);
     if(key_length < 0)
-        perror("ouverture de la key"); exit(-1);
+    {
+        perror("ouverture de la key");
+        exit(-1);
+    }
     key->arr_key = realloc(key->arr_key, key_length);
     key->key_length = key_length;
     fclose(fptr_key);
@@ -42,14 +45,14 @@ int main(int arc, char* argv[], char* varenv[])
 
     FILE* fptr_msg = fopen(argv[2],"rb");
     state_t* input = malloc(sizeof(state_t));
-    input->value = malloc(128 * sizeof(BYTE));
+    //input->value = malloc(128 * sizeof(BYTE));
     unsigned int read_bytes = 0;
 /////////////////////////////////////////////////////////////
 // Ouverture du fichier en sortie ( pour ecriture )
 
     FILE* fptr_out = fopen(argv[3], "wb");
     ouput_t* ouput = malloc(sizeof(ouput_t));
-    ouput->value = malloc(128 * sizeof(BYTE));
+    //ouput->value = malloc(128 * sizeof(BYTE));
     unsigned int nb_bytes_to_write = 128;
 // Creation des differentes cles de chiffrement
 /////////////////////////////////////////////////////////////
@@ -61,9 +64,9 @@ int main(int arc, char* argv[], char* varenv[])
 /////////////////////////////////////////////////////////////
 // Boucle de lecture, chiffrement, ecriture
 
-    while(read_bytes = fread(input->value, sizeof(BYTE),128, fptr_msg) );
+    while(read_bytes = fread(input->value, sizeof(BYTE),128, fptr_msg) )
     {
-        Cipher(input, ouput, key_tab, glob_sbox, Nb, Nr);
+        Cipher(input, ouput, Key_tab, glob_sbox, Nb, Nr);
         fwrite(ouput->value, sizeof(BYTE), nb_bytes_to_write, fptr_out);
     }
     return 1;
