@@ -1,20 +1,6 @@
 #ifndef LIB_AES_H
 #define LIB_AES_H
 
-/*
-// Key Length in words of 32 bits
-#define Nk4 4
-#define Nk6 6
-#define Nk8 8
-
-// Number of rounds
-#define Nr10 10
-#define Nr12 12
-#define Nr14 14
-
-// Block Size in words of 32 bits
-#define Nb 4
-*/
 typedef unsigned char BYTE;
 
 typedef struct state_s
@@ -33,15 +19,7 @@ typedef struct key_sched_s
     my_key_t* tab;
     // 1 word -> 4 bytes
 } key_sched_t;
-/*
-typedef struct key_sched_s
-{
-    BYTE** arr_key;
-    unsigned int nb_word; // 1 word -> 4 bytes
-} key_sched_t;
-*/
-//on va juste faire : typedef rcon_t BYTE, comme ça on devra creer un pointeur de rcon_t,
-// et le remplir
+
 
 typedef unsigned char rcon_t;
 

@@ -35,10 +35,11 @@ int main(int argc, char* argv[], char* varenv[])
         exit(-1);
     }
     key->arr_key = realloc(key->arr_key, key_length);
-    key->key_length = key_length;
+    key->key_length = key_length / 32; // taille en nb de mots de 32 bits
     fclose(fptr_key);
     unsigned int Nb = 4;// AES 128 dans la cas test
-    unsigned int Nk = 4; //normalement ça il faut le recuperer qqpart
+
+    unsigned int Nk = key->key_length; //normalement ça il faut le recuperer qqpart
     unsigned int Nr = Nb + Nk + 2;
 /////////////////////////////////////////////////////////////
 // Ouverture du fichier à chiffrer
@@ -69,5 +70,7 @@ int main(int argc, char* argv[], char* varenv[])
         Cipher(input, ouput, Key_tab, glob_sbox, Nb, Nr);
         fwrite(ouput->value, sizeof(BYTE), nb_bytes_to_write, fptr_out);
     }
+    fclose(fptr_msg);
+    fclose(fptr_out);
     return 1;
 }
