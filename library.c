@@ -13,20 +13,17 @@ void Cipher(intput_t* Input,
             SBox_t* sbox,
             unsigned int Nb,
             unsigned int Nr)
-
-//non il faut keysched, qui contient toutes les cles, une pour chaque round
 {
-
     state_t* state = malloc(sizeof(state_t));
 
     memcpy(state,Input,sizeof(intput_t));
 
     AddRoundKey(state, &(Key_tab->tab[0]));
     int i = 0;
-    for(i = 1 ; i < Nr ; i++)
+    for(i = 1 ; i < Nr ; i++) //segfault dans la boucle for()
     {
         SubBytes(state, sbox);
-        ShiftRows(state);
+        ShiftRows(state); // segfault ici !
         MixColumns(state);
         AddRoundKey(state, &(Key_tab->tab[i]));
     }
@@ -64,7 +61,9 @@ void ShiftRows(state_t* state)
     unsigned int tmp2 = 0;
     unsigned int tmp3 = 0;
     unsigned int tmp4 = 0;
-    for(int i, j = 0 ; j < 4 ; j++) // 16 octets à traiter
+    int i = 0;
+    int j = 0;
+    for(i,j ; j < 4 ; j++) // 16 octets à traiter
     {
         tmp1 = state->value[i];
         tmp2 = state->value[i + 1];
@@ -107,6 +106,7 @@ void ShiftRows(state_t* state)
                 break;
         }
     }
+
     return (void)0;
 }
 
@@ -115,13 +115,15 @@ void MixColumns(state_t* state)
     state_t* tmp_state = malloc(sizeof(state_t));
     for(int i = 0 ; i < 4 ; i++)
     {
+        //printf("%d\n",i);
         tmp_state->value[i + 0]   = ( 2 * state->value[i + 0] ) ^ (3 * state->value[i + 4]) ^ (1 * state->value[i + 8]) ^ (1 * state->value[i + 12]);
         tmp_state->value[i + 4]   = ( 1 * state->value[i + 0] ) ^ (2 * state->value[i + 4]) ^ (3 * state->value[i + 8]) ^ (1 * state->value[i + 12]);
         tmp_state->value[i + 8]   = ( 1 * state->value[i + 0] ) ^ (1 * state->value[i + 4]) ^ (2 * state->value[i + 8]) ^ (3 * state->value[i + 12]);
         tmp_state->value[i + 12]  = ( 3 * state->value[i + 0] ) ^ (1 * state->value[i + 4]) ^ (1 * state->value[i + 8]) ^ (2 * state->value[i + 12]);
     }
     memcpy(state, tmp_state, sizeof(state_t));
-    free(tmp_state);
+    //free(tmp_state); //comprends pas pourquoi ca segfault
+
     return (void)0;
 }
 
@@ -172,13 +174,13 @@ void AllocKeySched(key_sched_t* key_sched,
                    unsigned int Nb,
                    unsigned int Nr)
 {
-    for(int i = 0 ; i < Nb * (Nr - 1) ; i++)
+    //create key plante parceque allockey fait pas bien son boulot FAUX tout va bien ici
+    key_sched->tab = malloc(Nb * (Nr + 1) * sizeof(my_key_t));
+
+    for(int i = 0 ; i < Nb * (Nr + 1) ; i++)
     {
-        key_sched->tab = malloc(Nb * (Nr + 1) * sizeof(BYTE*));
-        for(int i = 0 ; i < (Nb * (Nr + 1) ) ; i++)
-        {
-            key_sched->tab[i].arr_key = malloc(4 * sizeof(BYTE));
-        }
+        //printf("%d\n",i);
+        key_sched->tab[i].arr_key = malloc(4 * sizeof(BYTE));
     }
     return (void)0;
 }
@@ -205,9 +207,10 @@ void CreateKeySched(key_sched_t* key_sched,
     }
 
     i = Nk;
-
-    while( i < Nb * (Nr + 1) )
+    //printf("%d\n",Nb * (Nr +  1));
+    while( i < Nb * (Nr + 1) ) // au bout d'un moment ça plante segfault dans le while()
     {
+        //printf("%u\n",i);
         memcpy(temp,key_sched->tab[i - 1].arr_key,sizeof(BYTE)*4);
         if( (i % Nk) == 0)
         {
@@ -227,6 +230,7 @@ void CreateKeySched(key_sched_t* key_sched,
 
         i = i + 1;
     }
+
     free(temp);
     return (void)0;
 }

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "library.h"
 
@@ -52,24 +53,25 @@ int main(int argc, char* argv[], char* varenv[])
 // Ouverture du fichier en sortie ( pour ecriture )
 
     FILE* fptr_out = fopen(argv[3], "wb");
-    ouput_t* ouput = malloc(sizeof(ouput_t));
+    ouput_t* output = malloc(sizeof(ouput_t));
     //ouput->value = malloc(128 * sizeof(BYTE));
-    unsigned int nb_bytes_to_write = 128;
+    unsigned int nb_bytes_to_write = 128/8;
 // Creation des differentes cles de chiffrement
 /////////////////////////////////////////////////////////////
 
     key_sched_t* Key_tab = malloc(sizeof(key_sched_t));
     AllocKeySched(Key_tab, Nb, Nr);
-    CreateKeySched(Key_tab, key, glob_sbox, glob_rcon, Nb, Nr, Nk);
 
+    CreateKeySched(Key_tab, key, glob_sbox, glob_rcon, Nb, Nr, Nk);
 /////////////////////////////////////////////////////////////
 // Boucle de lecture, chiffrement, ecriture
 
     while(read_bytes = fread(input->value, sizeof(BYTE),128, fptr_msg) )
     {
-        Cipher(input, ouput, Key_tab, glob_sbox, Nb, Nr);
-        fwrite(ouput->value, sizeof(BYTE), nb_bytes_to_write, fptr_out);
+        Cipher(input, output, Key_tab, glob_sbox, Nb, Nr);
+        fwrite(output->value, sizeof(BYTE), nb_bytes_to_write, fptr_out); //   segfault bordel ! je comprends pas !
     }
+
     fclose(fptr_msg);
     fclose(fptr_out);
     return 1;
