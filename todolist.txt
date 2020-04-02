@@ -1,1 +1,4 @@
--> Commenter le code et mettre le numero des catÃ©gories du pdf FIPS 197 AESªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªªª
+-> Commenter le code et mettre le numero des categories du pdf FIPS 197 AES
+-> Implementer Decipher() et toutes les fonctions utilisees par Decipher()
+-> Modifier le makefile pour compiler main2.c en my_rev_aes
+-> Tester le resultat du programme !!

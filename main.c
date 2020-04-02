@@ -1,3 +1,13 @@
+/*
+ *
+ * AES     : 128/192/256
+ * MODE    : ECB ( Electronic CodeBook )
+ * PADDING : Non
+ *
+ * Le fichier doit avoir une longueur multiple de 128 bits!
+ *
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -27,16 +37,16 @@ int main(int argc, char* argv[], char* varenv[])
     unsigned int key_length = 0;
 
     my_key_t* key = malloc(sizeof(key_t));
-    key->arr_key = malloc(sizeof(BYTE) * 256);
+    key->arr_key = malloc(sizeof(BYTE) * 256/8);
 
-    key_length = fread( key->arr_key , sizeof(BYTE), 256, fptr_key);
+    key_length = fread( key->arr_key , sizeof(BYTE), 256/8, fptr_key);
     if(key_length < 0)
     {
         perror("ouverture de la key");
         exit(-1);
     }
     key->arr_key = realloc(key->arr_key, key_length);
-    key->key_length = key_length / 32; // taille en nb de mots de 32 bits
+    key->key_length = key_length / 4; // taille en nb de mots de 32 bits
     fclose(fptr_key);
     unsigned int Nb = 4;
 
