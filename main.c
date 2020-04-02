@@ -38,40 +38,41 @@ int main(int argc, char* argv[], char* varenv[])
     key->arr_key = realloc(key->arr_key, key_length);
     key->key_length = key_length / 32; // taille en nb de mots de 32 bits
     fclose(fptr_key);
-    unsigned int Nb = 4;// AES 128 dans la cas test
+    unsigned int Nb = 4;
 
-    unsigned int Nk = key->key_length; //normalement ça il faut le recuperer qqpart
+    unsigned int Nk = key->key_length;
     unsigned int Nr = Nb + Nk + 2;
 /////////////////////////////////////////////////////////////
 // Ouverture du fichier à chiffrer
 
     FILE* fptr_msg = fopen(argv[2],"rb");
     state_t* input = malloc(sizeof(state_t));
-    //input->value = malloc(128 * sizeof(BYTE));
     unsigned int read_bytes = 0;
 /////////////////////////////////////////////////////////////
 // Ouverture du fichier en sortie ( pour ecriture )
 
     FILE* fptr_out = fopen(argv[3], "wb");
     ouput_t* output = malloc(sizeof(ouput_t));
-    //ouput->value = malloc(128 * sizeof(BYTE));
     unsigned int nb_bytes_to_write = 128/8;
 // Creation des differentes cles de chiffrement
 /////////////////////////////////////////////////////////////
 
     key_sched_t* Key_tab = malloc(sizeof(key_sched_t));
     AllocKeySched(Key_tab, Nb, Nr);
-
     CreateKeySched(Key_tab, key, glob_sbox, glob_rcon, Nb, Nr, Nk);
 /////////////////////////////////////////////////////////////
 // Boucle de lecture, chiffrement, ecriture
 
-    while(read_bytes = fread(input->value, sizeof(BYTE),128, fptr_msg) )
+    while( read_bytes = fread(input->value, sizeof(BYTE),128, fptr_msg)  ) // la boucle fait tout beugué pour une raison inconnue... Si on enleve le while tout marche, pu SEGFAULT!!!
     {
+        printf("debut\n");
         Cipher(input, output, Key_tab, glob_sbox, Nb, Nr);
-        fwrite(output->value, sizeof(BYTE), nb_bytes_to_write, fptr_out); //   segfault bordel ! je comprends pas !
+        printf("milieu\n");
+        fwrite(output->value, 1, nb_bytes_to_write, fptr_out); //   segfault bordel ! je comprends pas !
+        printf("fin\n");
     }
 
+/////////////////////////////////////////////////////////////
     fclose(fptr_msg);
     fclose(fptr_out);
     return 1;

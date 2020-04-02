@@ -33,6 +33,7 @@ void Cipher(intput_t* Input,
     AddRoundKey(state, &(Key_tab->tab[ (Nr + 1) * Nb - 1]));
 
     memcpy(Output, state, sizeof(state_t));
+    free(state);
     return (void)0;
 }
 

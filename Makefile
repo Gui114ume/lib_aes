@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -O0 -Wall
+CFLAGS=-g -Wall
 LDFLAGS=-L./ -lmyaes
 EXEC=
 
