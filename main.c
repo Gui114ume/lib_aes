@@ -63,13 +63,10 @@ int main(int argc, char* argv[], char* varenv[])
 /////////////////////////////////////////////////////////////
 // Boucle de lecture, chiffrement, ecriture
 
-    while( read_bytes = fread(input->value, sizeof(BYTE),128, fptr_msg)  ) // la boucle fait tout beugué pour une raison inconnue... Si on enleve le while tout marche, pu SEGFAULT!!!
+    while( read_bytes = fread(input->value, sizeof(BYTE), 16, fptr_msg)  )
     {
-        printf("debut\n");
         Cipher(input, output, Key_tab, glob_sbox, Nb, Nr);
-        printf("milieu\n");
-        fwrite(output->value, 1, nb_bytes_to_write, fptr_out); //   segfault bordel ! je comprends pas !
-        printf("fin\n");
+        fwrite(output->value, 1, nb_bytes_to_write, fptr_out);
     }
 
 /////////////////////////////////////////////////////////////

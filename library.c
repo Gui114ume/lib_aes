@@ -123,7 +123,8 @@ void MixColumns(state_t* state)
         tmp_state->value[i + 12]  = ( 3 * state->value[i + 0] ) ^ (1 * state->value[i + 4]) ^ (1 * state->value[i + 8]) ^ (2 * state->value[i + 12]);
     }
     memcpy(state, tmp_state, sizeof(state_t));
-    //free(tmp_state); //comprends pas pourquoi ca segfault
+
+    //free(tmp_state); //comprends pas pourquoi ca segfault, donc on free pas
 
     return (void)0;
 }
