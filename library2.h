@@ -1,5 +1,5 @@
-#ifndef LIB_AES_H
-#define LIB_AES_H
+#ifndef LIB_AES2_H
+#define LIB_AES2_H
 
 typedef unsigned char BYTE;
 
