@@ -1,4 +1,9 @@
 -> Commenter le code et mettre le numero des categories du pdf FIPS 197 AES
+
 -> Implementer Decipher() et toutes les fonctions utilisees par Decipher()
--> Modifier le makefile pour compiler main2.c en my_rev_aes
--> Tester le resultat du programme !!
+
+-> Tester le resultat du programme !! (  decrypt(encrypt(file)) == file ???  )
+
+-> Implementer d'autres modes que ECB ( choisir le mode avec argv )
+
+-> Implementer le padding ( copier le code dans sha1 et sha256 )

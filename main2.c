@@ -1,10 +1,5 @@
 /*
  *
- *  Probleme : la fonction mixcolumns
- *  ON ne peut pas multiplier comme d'habitude, il faut la multiplication du groupe de Galois
- *  A part ça tout ce qui se passe avant cet appel de fonction fonctionne !
- *
- *
  * AES     : 128/192/256
  * MODE    : ECB ( Electronic CodeBook )
  * PADDING : Non
@@ -19,7 +14,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "library.h"
+#include "library2.h"
 
 int main(int argc, char* argv[], char* varenv[])
 {
@@ -27,14 +22,14 @@ int main(int argc, char* argv[], char* varenv[])
     // Etapes du programme
 
     // 1. Récupérer la clé AES
-    // 2. Ouvrir le fichier à chiffrer, le fichier de sortie
+    // 2. Ouvrir le fichier à déchiffrer, le fichier de sortie
     // 3. Creation des cles de chiffrements
-    // 4. Chiffrer des blocs de 128 bits jusqu'à la fin du fichier (on suppose pas de padding)
-    // 5. On ecrit le fichier chiffré au fur et à mesure du chiffrement
+    // 4. Déchiffrer des blocs de 128 bits jusqu'à la fin du fichier (on suppose pas de padding)
+    // 5. On ecrit le fichier déchiffré au fur et à mesure du déchiffrement
 
     if(argc < 2)
     {
-        printf("usage : %s [fichier_key] [fichier_clair] [fichier_chiffre]\n",argv[0]);
+        printf("usage : %s [fichier_key] [fichier_chiffre] [fichier_sortie]\n",argv[0]);
         return -1;
     }
 // Recuperation de la cle AES //////////////////////////////
@@ -58,7 +53,7 @@ int main(int argc, char* argv[], char* varenv[])
     unsigned int Nk = key->key_length;
     unsigned int Nr = Nb + Nk + 2;
 /////////////////////////////////////////////////////////////
-// Ouverture du fichier à chiffrer
+// Ouverture du fichier à déchiffrer
 
     FILE* fptr_msg = fopen(argv[2],"rb");
     state_t* input = malloc(sizeof(state_t));
@@ -80,7 +75,7 @@ int main(int argc, char* argv[], char* varenv[])
 
     while( read_bytes = fread(input->value, sizeof(BYTE), 16, fptr_msg)  )
     {
-        Cipher(input, output, Key_tab, glob_sbox, Nb, Nr);
+        Decipher(input, output, Key_tab, glob_invsbox, Nb, Nr);
         fwrite(output->value, 1, nb_bytes_to_write, fptr_out);
     }
 
