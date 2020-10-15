@@ -1,4 +1,4 @@
-#include "library2.h"
+#include "library.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,10 +7,10 @@
 #include <unistd.h>
 
 
-void Decipher(intput_t* Input,
+void Cipher(intput_t* Input,
             ouput_t*  Output,
             key_sched_t* Key_tab,
-            SBox_t* invsbox,
+            SBox_t* sbox,
             unsigned int Nb,
             unsigned int Nr)
 {
@@ -18,30 +18,26 @@ void Decipher(intput_t* Input,
 
     memcpy(state->value,Input->value,16);
 
-    AddRoundKey(state, &(Key_tab->tab[4 * Nr]));
+    AddRoundKey(state, &(Key_tab->tab[0]));
 
     int i = 0;
-    for(i = 4 * Nr - 4 ; i >= 4 ;) //segfault dans la boucle for()
-        // on ne donne pas les bonnes clés !!
+    for(i = 4 ; i < 4 * Nr ;)
     {
 
-        InvShiftRows(state);
-        SubBytes(state, invsbox);
-        AddRoundKey(state, &(Key_tab->tab[i]));
-        InvMixColumns(state);
+        SubBytes(state, sbox);
 
-        i -= 4;
+        ShiftRows(state);
+
+        MixColumns(state);
+
+        AddRoundKey(state, &(Key_tab->tab[i]));
+
+        i += 4;
     }
 
-    InvShiftRows(state);
-    SubBytes(state, invsbox);
-
-    AddRoundKey(state, &(Key_tab->tab[ 0 ]));
-    printf("%d %d %d %d\n",state->value[0], state->value[4],state->value[8],state->value[12]);
-    printf("%d %d %d %d\n",state->value[1], state->value[5],state->value[9],state->value[13]);
-    printf("%d %d %d %d\n",state->value[2], state->value[6],state->value[10],state->value[14]);
-    printf("%d %d %d %d\n\n",state->value[3], state->value[7],state->value[11],state->value[15]);
-    fflush(stdout);
+    SubBytes(state, sbox);
+    ShiftRows(state);
+    AddRoundKey(state, &(Key_tab->tab[ 4 * Nr]));
     memcpy(Output, state, sizeof(state_t));
     free(state);
     return (void)0;
@@ -56,22 +52,18 @@ void SubBytes(state_t* state,
 
     BYTE I = 0;
     BYTE J = 0;
-    for(int i = 0 ; i < 32 ; i++) // un etat = 16 bytes donc pq 32 ?
+    for(int i = 0 ; i < 32 ; i++)
     {
-        // tab[i][j] = arr[ i * ( n - 1 ) + j ]
         I = (state->value[i] & 0b11110000) >> 4;
         J = state->value[i] & 0b00001111;
-        state->value[i] = sbox[ I * ( n ) + J ]; // on fait une traduction en gros
+        state->value[i] = sbox[ I * ( n ) + J ];
     }
 
     return (void)0;
 }
 
-void InvShiftRows(state_t* state)
+void ShiftRows(state_t* state)
 {
-
-    //ne fonctionne pas correctement
-    //les modifications ne sont pas conservé apres la boucle for !!
     BYTE tmp1 = 0;
     BYTE tmp2 = 0;
     BYTE tmp3 = 0;
@@ -79,7 +71,7 @@ void InvShiftRows(state_t* state)
     int i = 0;
     int j = 0;
 
-    for(i = 0,j = 0 ; j < 4 ; j++) // 16 octets à traiter
+    for(i = 0,j = 0 ; j < 4 ; j++)
     {
 
         tmp1 = state->value[i + 0];
@@ -89,32 +81,32 @@ void InvShiftRows(state_t* state)
         switch (j)
         {
             case 0:
-                state->value[ i + 0]  += 0;
-                state->value[ i + 4]  += 0;
-                state->value[ i + 8]  += 0;
+                state->value[ i + 0] += 0;
+                state->value[ i + 4] += 0;
+                state->value[ i + 8] += 0;
                 state->value[ i + 12] += 0;
                 i += 1;
                 break;
             case 1:
-                state->value[i + 0]  = tmp4;
-                state->value[i + 4]  = tmp1;
-                state->value[i + 8]  = tmp2;
-                state->value[i + 12] = tmp3;
+                state->value[i + 0]     = tmp2;
+                state->value[i + 4] = tmp3;
+                state->value[i + 8] = tmp4;
+                state->value[i + 12] = tmp1;
 
                 i += 1;
                 break;
             case 2:
-                state->value[i + 0]   = tmp3;
-                state->value[i + 4]   = tmp4;
-                state->value[i + 8]   = tmp1;
-                state->value[i + 12]  = tmp2;
+                state->value[i + 0]     = tmp3;
+                state->value[i + 4] = tmp4;
+                state->value[i + 8] = tmp1;
+                state->value[i + 12] = tmp2;
                 i += 1;
                 break;
             case 3:
-                state->value[i + 0]   = tmp2;
-                state->value[i + 4]   = tmp3;
-                state->value[i + 8]   = tmp4;
-                state->value[i + 12]  = tmp1;
+                state->value[i]     = tmp4;
+                state->value[i + 4] = tmp1;
+                state->value[i + 8] = tmp2;
+                state->value[i + 12] = tmp3;
                 i += 1;
 
                 break;
@@ -148,20 +140,19 @@ BYTE gmul(BYTE a, BYTE b)
     return p;
 }
 
-void InvMixColumns(state_t* state)
+void MixColumns(state_t* state)
 {
     state_t* tmp_state = malloc(sizeof(state_t));
 
     for(int i = 0 ; i < 16 ; )
     {
-        tmp_state->value[i + 0]   = gmul( 0x0e , state->value[i + 0] ) ^ gmul(0x0b , state->value[i + 1]) ^ gmul(0x0d , state->value[i + 2]) ^ gmul(0x09 , state->value[i + 3]);
-        tmp_state->value[i + 1]   = gmul( 0x09 , state->value[i + 0] ) ^ gmul(0x0e , state->value[i + 1]) ^ gmul(0x0b , state->value[i + 2]) ^ gmul(0x0d , state->value[i + 3]);
-        tmp_state->value[i + 2]   = gmul( 0x0d , state->value[i + 0] ) ^ gmul(0x09 , state->value[i + 1]) ^ gmul(0x0e , state->value[i + 2]) ^ gmul(0x0b , state->value[i + 3]);
-        tmp_state->value[i + 3]   = gmul( 0x0b , state->value[i + 0] ) ^ gmul(0x0d , state->value[i + 1]) ^ gmul(0x09 , state->value[i + 2]) ^ gmul(0x0e , state->value[i + 3]);
+        tmp_state->value[i + 0]   = gmul( 2 , state->value[i + 0] ) ^ gmul(3 , state->value[i + 1]) ^ gmul(1 , state->value[i + 2]) ^ gmul(1 , state->value[i + 3]);
+        tmp_state->value[i + 1]   = gmul( 1 , state->value[i + 0] ) ^ gmul(2 , state->value[i + 1]) ^ gmul(3 , state->value[i + 2]) ^ gmul(1 , state->value[i + 3]);
+        tmp_state->value[i + 2]   = gmul( 1 , state->value[i + 0] ) ^ gmul(1 , state->value[i + 1]) ^ gmul(2 , state->value[i + 2]) ^ gmul(3 , state->value[i + 3]);
+        tmp_state->value[i + 3]   = gmul( 3 , state->value[i + 0] ) ^ gmul(1 , state->value[i + 1]) ^ gmul(1 , state->value[i + 2]) ^ gmul(2 , state->value[i + 3]);
         i += 4;
     }
     memcpy(state->value, tmp_state->value, 16);
-    //free(tmp_state); //comprends pas pourquoi ca segfault, donc on free pas
 
     return (void)0;
 }
@@ -199,7 +190,6 @@ void RotWord(BYTE* word)
 void SubWord(BYTE* word,
              SBox_t* sbox)
 {
-    //sbox initialisé et remplie ailleurs, dans le main
     BYTE* tmp_word = malloc(4 * sizeof(BYTE));
     unsigned int n = 16; // nb d'element par ligne
     tmp_word[0] = sbox[   ((word[0] & 0b11110000) >> 4 ) * (n ) +  ( (word[0] & 0b00001111))];
@@ -247,19 +237,15 @@ void CreateKeySched(key_sched_t* key_sched,
     }
 
     i = Nk;
-    //printf("%d\n",Nb * (Nr +  1));
-    while( i < Nb * (Nr + 1) )
+    while( i < Nb * (Nr + 1) ) 
     {
-        //printf("%u\n",i);
         memcpy(temp,key_sched->tab[i - 1].arr_key,sizeof(BYTE)*4);
         if( (i % Nk) == 0)
         {
             RotWord(temp);
-            SubWord(temp, sbox); // deja la c'est faux
+            SubWord(temp, sbox); 
             for(int j = 0 ; j < 4 ; j++)
-                temp[j] = (j == 0) ? temp[j] ^ Rcon[i/Nk] : temp[j] ^ 0b00000000; // tableau 2D en 1D, il faut que j apparaisse dedans
-            // attention rcon contient juste les valeurs interessant, càd le premier octet,
-            // les autres sont a zero { x^(i-1), 0, 0, 0  }
+                temp[j] = (j == 0) ? temp[j] ^ Rcon[i/Nk] : temp[j] ^ 0b00000000;
 
         }
         else if (  (Nk > 6) && (  (i % Nk) == 4)  )

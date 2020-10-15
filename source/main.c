@@ -1,10 +1,5 @@
 /*
  *
- *  Probleme : la fonction mixcolumns
- *  ON ne peut pas multiplier comme d'habitude, il faut la multiplication du groupe de Galois
- *  A part ça tout ce qui se passe avant cet appel de fonction fonctionne !
- *
- *
  * AES     : 128/192/256
  * MODE    : ECB ( Electronic CodeBook )
  * PADDING : Non

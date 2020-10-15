@@ -1,4 +1,11 @@
--> Commenter le code et mettre le numero des categories du pdf FIPS 197 AES
+-> Commenter le code
+
+-> améliorer le makefile/build
+
+-> readme
+
+
+
 
 -> Implementer d'autres modes que ECB ( choisir le mode avec argv )
 
