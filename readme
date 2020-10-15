@@ -1,0 +1,14 @@
+Implémentation de l'algorithme AES
+----------------------------------
+Infos :
+-------
+	- La taille du message doit être multiple de 128 bits (padding non implémenté)
+	- La clé utilisée peut être de 128/192/256 bits
+	- Le mode de chiffrement implémenté est ECB (Electronic Code Book)
+
+Utilisation:
+------------
+
+make
+LD_LIBRARY_PATH=./ ./my_aes      cle message_clair   message_chiffre
+LD_LIBRARY_PATH=./ ./my_rev_aes  cle message_chiffre message_clair
