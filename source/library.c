@@ -52,7 +52,7 @@ void SubBytes(state_t* state,
 
     BYTE I = 0;
     BYTE J = 0;
-    for(int i = 0 ; i < 32 ; i++)
+    for(int i = 0 ; i < 16 ; i++)
     {
         I = (state->value[i] & 0b11110000) >> 4;
         J = state->value[i] & 0b00001111;
